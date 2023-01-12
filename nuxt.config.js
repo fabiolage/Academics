@@ -44,47 +44,9 @@ export default {
 
   axios: {
     // Workaround to avoid enforcing hard-coded localhost:3000: https://github.com/nuxt-community/axios-module/issues/308
-    proxy: true,
-    credentials: true
+    baseURL: "http://localhost:8080/academics/api/",
+    browserBaseURL: "http://localhost:8080/academics/api/",
   },
-
-  proxy: {
-    '/api/': {
-      target: 'http://localhost:8080/academics/api/',
-      pathRewrite: {
-        '^/api/': ''
-      }
-    }
-  },
-
-  auth: {
-    redirect: {
-      login: '/auth/login',
-      logout: '/',
-      home: '/'
-    },
-    watchLoggedIn: true,
-    strategies: {
-      local: {
-        endpoints: {
-          login: {
-            url: '/api/auth/login',
-            method: 'post',
-            propertyName: null
-          },
-          logout: false,
-          user: {
-            url: '/api/auth/user',
-            method: 'get',
-            propertyName: null
-          }
-        },
-        // tokenRequired: true, -> default
-        // tokenType: 'bearer' -> default
-      }
-    }
-  },
-
 
   router: {
     // middleware: [

@@ -5,7 +5,7 @@
         <v-card>
           <v-card-title>Policies</v-card-title>
           <v-card-text>
-            <v-simple-table>
+            <v-simple-table v-if="policies.length != 0">
               <template v-slot:default>
                 <thead>
                   <tr>
@@ -17,9 +17,9 @@
                 </thead>
                 <tbody>
                   <tr v-for="policy in policies" :key="policy.id">
-                    <td>{{ policy.code }}</td>
-                    <td>{{ policy.insuranceCompany }}</td>
-                    <td>{{ policy.type }}</td>
+                    <td>{{ policy.policy_number }}</td>
+                    <td>{{ policy.company_name }}</td>
+                    <td>{{ policy.insured_object }}</td>
                     <td>
                       <v-chip v-for="cover in policy.covers" :key="cover" color="primary" text-color="white" class="ma-2">
                         {{ cover }}
@@ -39,32 +39,25 @@
 export default {
   data() {
     return {
-      policies: [
-        {
-          id: 1,
-          code: 'XYZ123',
-          insuranceCompany: 'Acme Insurance',
-          type: 'Home',
-          covers: ['Fire', 'Theft']
-        },
-        {
-          id: 2,
-          code: 'ABC456',
-          insuranceCompany: 'Best Insurance',
-          type: 'CellPhone',
-          covers: ['Broken grass', 'Theft']
-        },
-        {
-          id: 3,
-          code: 'DEF789',
-          insuranceCompany: 'Sure Insurance',
-          type: 'Health',
-          covers: ['Life', 'Injury']
-        }
-      ]
+      policies: []
     }
+  },
+  methods: {
+    async fetchClient() {
+
+      this.$axios
+      .$get("clients/997909748", {
+        headers: {
+          'Accept': 'application/json'
+        }
+      }).then(response => {this.policies = response})
+    }
+  },
+  created() {
+    this.fetchClient();
   }
 }
+
 </script>
 <style scoped>
 .container {
