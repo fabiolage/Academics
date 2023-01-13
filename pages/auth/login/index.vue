@@ -11,10 +11,10 @@
                 type="text"
                 id="form3Example3"
                 class="form-control form-control-lg"
-                placeholder="Username"
-                v-model="form.username"
+                placeholder="Nif"
+                v-model="form.nif"
               />
-              <label class="form-label" for="form3Example3">Email address</label>
+              <label class="form-label" for="form3Example3">NIF</label>
             </div>
 
             <!-- Password input -->
@@ -53,7 +53,7 @@ export default {
   data() {
     return {
       form: {
-        username: "",
+        nif: "",
         password: "",
         error: ""
       },
@@ -62,20 +62,18 @@ export default {
   },
   methods: {
     onSubmit() {
-      // let promise = this.$auth.loginWith('local', {
-      //   data: {
-      //     username: this.form.username,
-      //     password: this.form.password
-      //   }
-      // })
-      // promise.then(() => {
-      //   this.$router.push(`/${this.$auth.user.role.toLowerCase()}s/` + this.form.username);
-      // })
-      // promise.catch(() => {
-      //   this.form.error = 'Invalid username or password';
-      // })
-      this.$router.push('/auth/client/');
-      //this.$router.push('/auth/expert/');
+      let promise = this.$auth.loginWith('local', {
+        data: {
+          nif: this.form.nif,
+          password: this.form.password
+        }
+      })
+      promise.then(() => {
+        this.$router.push(`/auth/${this.$auth.user.role.toLowerCase()}`);
+      })
+      promise.catch(() => {
+        this.form.error = 'Invalid nif or password';
+      })
     }
   },
 };

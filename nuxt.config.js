@@ -20,6 +20,8 @@ export default {
   css: [
   ],
 
+
+
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
   plugins: [
   ],
@@ -42,16 +44,56 @@ export default {
     '@nuxtjs/vuetify'
   ],
 
+  // Axios module configuration: https://go.nuxtjs.dev/config-axios
   axios: {
     // Workaround to avoid enforcing hard-coded localhost:3000: https://github.com/nuxt-community/axios-module/issues/308
-    baseURL: "http://localhost:8080/academics/api/",
-    browserBaseURL: "http://localhost:8080/academics/api/",
+    proxy: true,
+    baseURL: 'http://localhost:8080/academics/api/',
   },
 
+
+  auth: {
+    redirect: {
+      login: '/auth/login',
+      logout: '/',
+      home: '/'
+    },
+    watchLoggedIn: true,
+    strategies: {
+      local: {
+        endpoints: {
+          login: {
+            url: '/api/auth/login',
+            method: 'post',
+            propertyName: null
+          },
+          logout: false,
+          user: {
+            url: '/api/auth/user',
+            method: 'get',
+            propertyName: null
+          }
+        },
+        // tokenRequired: true, -> default
+        // tokenType: 'bearer' -> default
+      }
+    }
+  },
+
+
   router: {
-    // middleware: [
-    //   'auth'
-    // ]
+    middleware: [
+      'auth'
+    ]
+  },
+
+    proxy: {
+    '/api/': {
+      target: 'http://localhost:8080/academics/api/',
+      pathRewrite: {
+        '^/api/': ''
+      }
+    }
   },
 
   // Build Configuration: https://go.nuxtjs.dev/config-build

@@ -10,9 +10,12 @@
                 <thead>
                   <tr>
                     <th id="policy-code" class="text-left">Code</th>
-                    <th id="policy-insure-company" class="text-left">Insurance Company</th>
+                    <th id="policy-insure-company" class="text-left">
+                      Insurance Company
+                    </th>
                     <th id="policy-type" class="text-left">Type</th>
                     <th id="policy-coverage" class="text-left">Coverage</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -21,9 +24,18 @@
                     <td>{{ policy.company_name }}</td>
                     <td>{{ policy.insured_object }}</td>
                     <td>
-                      <v-chip v-for="cover in policy.covers" :key="cover" color="primary" text-color="white" class="ma-2">
+                      <v-chip
+                        v-for="cover in policy.covers"
+                        :key="cover"
+                        color="primary"
+                        text-color="white"
+                        class="ma-2"
+                      >
                         {{ cover }}
                       </v-chip>
+                    </td>
+                    <td>
+                      <v-btn color="primary" @click="viewOccurances(policy.policy_number)">View Occurences</v-btn>
                     </td>
                   </tr>
                 </tbody>
@@ -39,25 +51,25 @@
 export default {
   data() {
     return {
-      policies: []
-    }
+      policies: [],
+    };
   },
   methods: {
     async fetchClient() {
-
-      this.$axios
-      .$get("clients/997909748", {
-        headers: {
-          'Accept': 'application/json'
-        }
-      }).then(response => {this.policies = response})
-    }
+      this.$axios.$get("/api/clients/"+this.$auth.user.nif+"/policies", {
+          headers: {
+            Accept: "application/json",
+          },
+        })
+        .then((response) => {
+          this.policies = response;
+        });
+    },
   },
   created() {
     this.fetchClient();
-  }
-}
-
+  },
+};
 </script>
 <style scoped>
 .container {
