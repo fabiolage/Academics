@@ -1,6 +1,6 @@
 <template>
   <v-card>
-    <div class="row">
+    <div class="row w-90">
       <div class="col-9">
         <v-card-title>Ticket Details</v-card-title>
       </div>
@@ -15,28 +15,21 @@
         <v-col cols="12" sm="6">
           <v-text-field
             label="Policy Number"
-            v-model="ticket.policyNumber"
+            v-model="ticket.policy_number"
             readonly
           ></v-text-field>
         </v-col>
         <v-col cols="12" sm="6">
           <v-text-field
             label="Ticket Status"
-            v-model="ticket.ticketStatus"
+            v-model="ticket.occurrenceState"
             readonly
           ></v-text-field>
         </v-col>
         <v-col cols="12" sm="6">
           <v-text-field
             label="Product Description"
-            v-model="ticket.productDescription"
-            readonly
-          ></v-text-field>
-        </v-col>
-        <v-col cols="12" sm="6">
-          <v-text-field
-            label="Date and Time of Incident"
-            v-model="ticket.incidentDateTime"
+            v-model="ticket.insured_object"
             readonly
           ></v-text-field>
         </v-col>
@@ -69,22 +62,10 @@
 
 <script>
 export default {
-  props: ['ticketId'],
+  props: ['id'],
   data() {
     return {
-      ticket: {
-        id:  456,
-        policyNumber: 12345,
-        productDescription: "Home",
-        ticketStatus: "Open",
-        incidentDateTime: "2023-01-03 18:00",
-        description: "Description goes here",
-        covers: ["Accidental Death"],
-        attachments: [
-          { id: 1, fileName: "File 1", url: "https://ead.ipleiria.pt/2022-23/pluginfile.php/109374/mod_resource/content/12/DAE-2022-23-1S-ENUNCIADO_PROJETO.pdf" },
-          { id: 2, fileName: "File 2", url: "https://ead.ipleiria.pt/2022-23/pluginfile.php/109374/mod_resource/content/12/DAE-2022-23-1S-ENUNCIADO_PROJETO.pdf" },
-        ]
-      }
+      ticket: {}
     }
   },
   mounted() {
@@ -92,13 +73,14 @@ export default {
   },
   methods: {
     async fetchTicket() {
-      try {
-        // something like this
-        //const response = await axios.get(`/api/tickets/${this.ticketId}`)
-        //this.ticket = response.data
-      } catch (error) {
-        console.error(error)
-      }
+      this.$axios.$get("/api/occurrence/"+this.id, {
+          headers: {
+            Accept: "application/json",
+          },
+        })
+        .then((response) => {
+          this.ticket = response;
+        });
     },
     closeView() {
       this.$emit('close')

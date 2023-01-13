@@ -4,13 +4,17 @@
       <v-btn @click="filter = ''">Remove Filter</v-btn>
       <v-btn color="error" @click="closeView()">Go Back</v-btn>
     </v-card-actions>
-    <occurence-details v-if="viewingDetails" :occurence="selectedOccurence" @close="viewingDetails = false" />
-    <occurence-service-repair v-if="viewingSetServiceDetails" :occurence="selectedOccurence" @close="viewingSetServiceDetails = false" />
-    <v-select
-      v-model="filter"
-      :items="statusOptions"
-      label="Filter by status"
-    ></v-select>
+    <occurence-details
+      v-if="viewingDetails"
+      :id="selectedOccurrenceId"
+      @close="viewingDetails = false"
+    />
+    <occurence-service-repair
+      v-if="viewingSetServiceDetails"
+      :occurence="selectedOccurrenceId"
+      @close="viewingSetServiceDetails = false"
+    />
+    <v-select v-model="filter" :items="statusOptions" label="Filter by status"></v-select>
     <v-data-table
       :headers="headers"
       :items="filteredOccurrences"
@@ -28,52 +32,90 @@
       </template>
       <template v-slot:item.actions="{ item }">
         <v-btn color="primary" @click="viewDetails(item)">View Details</v-btn>
-        <v-btn v-if="item.occurrenceState =='opened'" color="error" @click="cancelOccurence(item)">Cancel Occurence</v-btn>
-        <v-btn v-if="item.occurrenceState =='Approved'" color="normal" @click="viewServiceRepair(item)">Set service repair</v-btn>
+        <v-btn
+          v-if="item.occurrenceState == 'opened'"
+          color="error"
+          @click="cancelOccurence(item.id)"
+          >Cancel Occurrence</v-btn
+        >
+        <v-btn
+          v-if="item.occurrenceState == 'accepted'"
+          color="normal"
+          @click="viewServiceRepair(item)"
+          >Set service repair</v-btn
+        >
       </template>
     </v-data-table>
   </div>
 </template>
 
 <script>
-import OccurenceDetails from '../occurrences/details.vue'
-import OccurenceServiceRepair from '../occurrences/serviceRepair.vue'
+import OccurenceDetails from "../occurrences/details.vue";
+import OccurenceServiceRepair from "../occurrences/serviceRepair.vue";
 export default {
   components: {
     OccurenceDetails,
-    OccurenceServiceRepair
+    OccurenceServiceRepair,
   },
-  props: ['id'],
+  props: ["id"],
   data() {
     return {
       viewingDetails: false,
       viewingSetServiceDetails: false,
-      selectedOccurence: {},
-      filter: '',
-      statusOptions: ['Open', 'Closed', 'Canceled', 'Denyed', 'Approved'],
-      headers: [
-        { text: 'Policy Number', value: 'policyNumber' },
-        { text: 'Description', value: 'description' },
-        { text: 'Occurrence Status', value: 'occurrenceState' },
-        { text: 'Actions', value: 'actions', sortable: false }
+      selectedOccurrenceId: '',
+      filter: "",
+      statusOptions: [
+        "opened",
+        "in_analysis",
+        "accepted",
+        "in_repair",
+        "repaired",
+        "delivered",
+        "rejected",
+        "closed",
+        "cancelled",
       ],
-      occurrences: []
-    }
+      headers: [
+        { text: "Policy Number", value: "policyNumber" },
+        { text: "Description", value: "description" },
+        { text: "Occurrence Status", value: "occurrenceState" },
+        { text: "Actions", value: "actions", sortable: false },
+      ],
+      occurrences: [],
+    };
   },
   computed: {
     filteredOccurrences() {
       if (this.filter) {
-         return this.occurrences.filter(occurrence => occurrence.occurrenceState === this.filter)
+        return this.occurrences.filter(
+          (occurrence) => occurrence.occurrenceState === this.filter
+        );
       }
-      return this.occurrences
-    }
+      return this.occurrences;
+    },
   },
   methods: {
-    cancelOccurence(item) {
-      console.log(`Canceling occurence with policy number: ${item.policyNumber}`)
+    async cancelOccurence(item) {
+      this.$axios
+        .$put(
+          "/api/occurrence/"+ item,
+          {
+            occurrenceState: "cancelled",
+          },
+          {
+            headers: {
+              Accept: "application/json",
+            },
+          }
+        )
+        .then(() => {
+          this.$toast.success('Occurrence cancelled with success!', { duration: 3000 });
+          this.fetchListOfOccurences();
+        });
     },
-    async fetchListOfOccurences(policyId) {
-      this.$axios.$get("/api/clients/"+this.$auth.user.nif+"/"+this.id+"/occurrences", {
+    async fetchListOfOccurences() {
+      this.$axios
+        .$get("/api/clients/" + this.$auth.user.nif + "/" + this.id + "/occurrences", {
           headers: {
             Accept: "application/json",
           },
@@ -83,21 +125,21 @@ export default {
         });
     },
     viewDetails(item) {
-      this.selectedOccurence = item.id
-      this.viewingDetails = true
-      this.viewingSetServiceDetails = false
+      this.selectedOccurrenceId = item.id;
+      this.viewingDetails = true;
+      this.viewingSetServiceDetails = false;
     },
     viewServiceRepair(item) {
-      this.selectedOccurence = item.id
-      this.viewingDetails = false
-      this.viewingSetServiceDetails = true
+      this.selectedOccurrenceId = item.id;
+      this.viewingDetails = false;
+      this.viewingSetServiceDetails = true;
     },
     closeView() {
-      this.$emit('close')
-    }
+      this.$emit("close");
+    },
   },
   created() {
     this.fetchListOfOccurences();
   },
-}
+};
 </script>
