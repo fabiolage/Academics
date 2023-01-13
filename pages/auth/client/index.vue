@@ -18,12 +18,6 @@
                   </v-list-item-icon>
                   <v-list-item-title>Create ticket</v-list-item-title>
                 </v-list-item>
-                <v-list-item link v-on:click="displayListOfTickets()">
-                  <v-list-item-icon>
-                    <v-icon>mdi-list-box-outline</v-icon>
-                  </v-list-item-icon>
-                  <v-list-item-title>My tickets</v-list-item-title>
-                </v-list-item>
                 <v-divider></v-divider>
                 <v-list-item link v-on:click="displayListOfPolicies()">
                   <v-list-item-icon>
@@ -37,7 +31,6 @@
           </v-card>
           <div class="component-container">
             <ticket-create v-if="showContainer.showTicketCreate" />
-            <ticket-list v-if="showContainer.showListOfTickets" />
             <policies-list v-if="showContainer.showListOfPolicies" />
           </div>
         </div>
@@ -49,14 +42,13 @@
 export default {
   data() {
     return {
-      showContainer: { showTicketCreate: false, showListOfTickets: false, showListOfPolicies: false }
+      showContainer: { showTicketCreate: false, showListOfPolicies: false }
     };
   },
   components: {
     "user": () => import("@/pages/menu/user.vue"),
     "logout": () => import("@/pages/menu/logout.vue"),
-    "ticket-create": () => import("@/pages/auth/client/ticket/create.vue"),
-    "ticket-list": () => import("@/pages/auth/client/ticket/list.vue"),
+    "ticket-create": () => import("@/pages/auth/client/occurrences/create.vue"),
     "policies-list": () => import("@/pages/auth/client/policies/list.vue"),
   },
   computed: {
@@ -69,21 +61,13 @@ export default {
       this.resetDisplayVariable();
       this.showContainer.showTicketCreate = true;
     },
-    displayListOfTickets: function () {
-      this.resetDisplayVariable();
-      this.showContainer.showListOfTickets = true;
-    },
     displayListOfPolicies: function () {
       this.resetDisplayVariable();
       this.showContainer.showListOfPolicies = true;
     },
     resetDisplayVariable: function () {
       this.showContainer.showTicketCreate = false;
-      this.showContainer.showListOfTickets = false;
       this.showContainer.showListOfPolicies = false;
-    },
-    logout: function () {
-      this.$router.push(`/`);
     }
   }
 };

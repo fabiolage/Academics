@@ -28,7 +28,7 @@
             </v-navigation-drawer>
           </v-card>
           <div class="component-container">
-            <ticket-list v-if="showContainer.showReviewTickets" />
+
           </div>
         </div>
       </div>
@@ -67,8 +67,7 @@ export default {
   },
   components: {
     "user": () => import("@/pages/menu/user.vue"),
-    "logout": () => import("@/pages/menu/logout.vue"),
-    "ticket-list": () => import("@/pages/auth/repair/tickets/list.vue")
+    "logout": () => import("@/pages/menu/logout.vue")
   },
   computed: {
     filteredTickets() {

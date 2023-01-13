@@ -68,7 +68,7 @@ export default {
   components: {
     "user": () => import("@/pages/menu/user.vue"),
     "logout": () => import("@/pages/menu/logout.vue"),
-    "ticket-list": () => import("@/pages/auth/expert/tickets/list.vue")
+    "ticket-list": () => import("@/pages/auth/expert/occurrences/list.vue")
   },
   computed: {
     filteredTickets() {

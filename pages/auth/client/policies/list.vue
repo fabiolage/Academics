@@ -1,11 +1,11 @@
 <template>
   <v-container class="container pl-0">
-    <v-row>
+    <v-row v-if="!showListOfOccurences">
       <v-col cols="12">
         <v-card>
           <v-card-title>Policies</v-card-title>
           <v-card-text>
-            <v-simple-table v-if="policies.length != 0">
+            <v-simple-table v-if="policies.length > 0">
               <template v-slot:default>
                 <thead>
                   <tr>
@@ -15,7 +15,7 @@
                     </th>
                     <th id="policy-type" class="text-left">Type</th>
                     <th id="policy-coverage" class="text-left">Coverage</th>
-                    <th></th>
+                    <th id="policy-actions"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -45,6 +45,9 @@
         </v-card>
       </v-col>
     </v-row>
+    <v-row v-if="showListOfOccurences && selectedPolicyNumber != ''">
+      <occurrences-list :id="selectedPolicyNumber" @close="closeListOfOccurences()"/>
+    </v-row>
   </v-container>
 </template>
 <script>
@@ -52,7 +55,12 @@ export default {
   data() {
     return {
       policies: [],
+      selectedPolicyNumber: '',
+      showListOfOccurences: false
     };
+  },
+  components: {
+    "occurrences-list": () => import("@/pages/auth/client/policies/occurrences-list.vue"),
   },
   methods: {
     async fetchClient() {
@@ -65,6 +73,14 @@ export default {
           this.policies = response;
         });
     },
+    viewOccurances(policyNumber)  {
+      this.selectedPolicyNumber = policyNumber;
+      this.showListOfOccurences = true;
+    },
+    closeListOfOccurences() {
+      this.showListOfOccurences = false;
+      this.selectedPolicyNumber = '';
+    }
   },
   created() {
     this.fetchClient();
