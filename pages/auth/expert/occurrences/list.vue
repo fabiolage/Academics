@@ -2,13 +2,13 @@
   <v-container class="container">
     <ticket-details
       v-if="viewingDetails"
-      :ticketId="selectedTicket"
-      @close="viewingDetails = false"
+      :id="selectedOccurrenceId"
+      @close="onDetailsClosed()"
       class="detail"
     />
     <div class="row">
       <div class="col-8">
-        <h3>List of Tickets</h3>
+        <h3>List of Occurrences</h3>
       </div>
       <div class="col-4">
         <v-btn class="float-right" @click="toggleFilter">{{ filterOpen ? "Show All" : "Show Open" }}</v-btn>
@@ -17,7 +17,7 @@
 
     <v-data-table
       :headers="headers"
-      :items="filteredTickets"
+      :items="filteredOccurrences"
       :loading="loading"
       class="elevation-1"
     >
@@ -35,11 +35,11 @@
           {{ cover }}
         </v-chip>
       </template>
-      <template v-slot:item.ticketStatus="{ item }">
-        {{ item.ticketStatus }}
+      <template v-slot:item.occurrenceState="{ item }">
+        {{ item.occurrenceState }}
       </template>
       <template v-slot:item.actions="{ item }">
-        <v-btn v-if="item.ticketStatus === 'Open'" @click="viewTicket(item)"
+        <v-btn v-if="item.occurrenceState === 'opened'" @click="viewTicket(item.id)"
           >Review</v-btn
         >
       </template>
@@ -56,57 +56,53 @@ export default {
   data() {
     return {
       viewingDetails: false,
-      selectedTicket: {},
+      selectedOccurrenceId: '',
       loading: false,
       filterOpen: true,
-      tickets: [
-        {
-          id: 1,
-          policyNumber: 12345,
-          productDescription: "Home",
-          covers: ["Fire", "Theft"],
-          ticketStatus: "Open",
-        },
-        {
-          id: 2,
-          policyNumber: 67890,
-          productDescription: "Auto",
-          covers: ["Collision", "Liability"],
-          ticketStatus: "Open",
-        },
-        {
-          id: 3,
-          policyNumber: 13579,
-          productDescription: "Life",
-          covers: ["Accidental Death"],
-          ticketStatus: "Closed",
-        },
-      ],
+      occurrences: [],
       headers: [
         { text: "Policy Number", value: "policyNumber" },
-        { text: "Product Description", value: "productDescription" },
-        { text: "Covers", value: "covers" },
-        { text: "Status", value: "ticketStatus" },
+        { text: "Description", value: "description" },
+        { text: "Status", value: "occurrenceState" },
         { text: "Actions", value: "actions" },
       ],
     };
   },
   computed: {
-    filteredTickets() {
+    filteredOccurrences() {
       return this.filterOpen
-        ? this.tickets.filter((ticket) => ticket.ticketStatus === "Open")
-        : this.tickets;
+        ? this.occurrences.filter((occurence) => occurence.occurrenceState === "opened")
+        : this.occurrences;
     },
   },
   methods: {
     toggleFilter() {
       this.filterOpen = !this.filterOpen;
     },
-    viewTicket(item) {
-      this.selectedTicket = item.id;
+    viewTicket(id) {
+      this.selectedOccurrenceId = id;
       this.viewingDetails = true;
     },
+    async fetchOccurrencesForExpert() {
+      this.$axios
+        .$get("/api/expert/" + this.$auth.user.nif +"/occurrences", {
+          headers: {
+            Accept: "application/json",
+          },
+        })
+        .then((response) => {
+          this.occurrences = response;
+        });
+    },
+    onDetailsClosed() {
+      this.viewingDetails = false;
+      this.selectedOccurrenceId = '';
+      this.fetchOccurrencesForExpert();
+    }
   },
+  created() {
+    this.fetchOccurrencesForExpert();
+  }
 };
 </script>
 <style scoped>

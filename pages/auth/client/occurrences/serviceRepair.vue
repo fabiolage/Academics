@@ -6,7 +6,7 @@
       </div>
       <div class="col-3">
         <v-card-actions class="float-right">
-          <v-btn color="error" @click="closeView">Close</v-btn>
+          <v-btn color="error" @click="closeView()">Close</v-btn>
         </v-card-actions>
       </div>
     </div>

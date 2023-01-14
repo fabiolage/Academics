@@ -6,7 +6,7 @@
       </div>
       <div class="col-3">
         <v-card-actions class="float-right">
-          <v-btn color="error" @click="closeView">Close</v-btn>
+          <v-btn color="error" @click="closeView()">Close</v-btn>
         </v-card-actions>
       </div>
     </div>
@@ -15,28 +15,21 @@
         <v-col cols="12" sm="6">
           <v-text-field
             label="Policy Number"
-            v-model="ticket.policyNumber"
+            v-model="ticket.policy_number"
             readonly
           ></v-text-field>
         </v-col>
         <v-col cols="12" sm="6">
           <v-text-field
-            label="Ticket Status"
-            v-model="ticket.ticketStatus"
+            label="Occurrence Status"
+            v-model="ticket.occurrenceState"
             readonly
           ></v-text-field>
         </v-col>
         <v-col cols="12" sm="6">
           <v-text-field
             label="Product Description"
-            v-model="ticket.productDescription"
-            readonly
-          ></v-text-field>
-        </v-col>
-        <v-col cols="12" sm="6">
-          <v-text-field
-            label="Date and Time of Incident"
-            v-model="ticket.incidentDateTime"
+            v-model="ticket.insured_object"
             readonly
           ></v-text-field>
         </v-col>
@@ -102,40 +95,11 @@
 </template>
 <script>
 export default {
-  props: ["ticketId"],
+  props: ["id"],
   data() {
     return {
-      ticket: {
-        id: 456,
-        policyNumber: 12345,
-        productDescription: "Home",
-        ticketStatus: "Open",
-        incidentDateTime: "2023-01-03 18:00",
-        description: "Description goes here",
-        attachments: [
-          {
-            id: 1,
-            fileName: "File 1",
-            url:
-              "https://ead.ipleiria.pt/2022-23/pluginfile.php/109374/mod_resource/content/12/DAE-2022-23-1S-ENUNCIADO_PROJETO.pdf",
-          },
-          {
-            id: 2,
-            fileName: "File 2",
-            url:
-              "https://ead.ipleiria.pt/2022-23/pluginfile.php/109374/mod_resource/content/12/DAE-2022-23-1S-ENUNCIADO_PROJETO.pdf",
-          },
-        ],
-        covers: ["Collision", "Liability"],
-      },
-      message: "",
+      ticket: {},
       showModal: false,
-      selectedStore: null,
-      stores: [
-        { id: 1, name: "Worten" },
-        { id: 2, name: "PCDiga" },
-        { id: 3, name: "Fnac" },
-      ],
       approvedStatus: false,
       denyedStatus: false
     };
@@ -146,9 +110,14 @@ export default {
   methods: {
     async fetchTicket() {
       try {
-        // something like this
-        //const response = await axios.get(`/api/tickets/${this.ticketId}`)
-        //this.ticket = response.data
+        this.$axios.$get("/api/occurrence/"+this.id, {
+          headers: {
+            Accept: "application/json",
+          },
+        })
+        .then((response) => {
+          this.ticket = response;
+        });
       } catch (error) {
         console.error(error);
       }
@@ -157,12 +126,10 @@ export default {
       this.$emit("close");
     },
     async approveTicket() {
-      // TODO
-      console.log("approved ticket");
+      this.setOccurrence("accepted")
     },
     async denyTicket() {
-      // TODO
-      console.log("denyed ticket");
+      this.setOccurrence("rejected")
     },
     confirmAction() {
       this.showModal = false;
@@ -175,6 +142,24 @@ export default {
       this.approvedStatus = false;
       this.denyedStatus = false;
     },
+    setOccurrence(status) {
+      this.$axios
+        .$put(
+          "/api/occurrence/"+ this.id,
+          {
+            occurrenceState: status,
+          },
+          {
+            headers: {
+              Accept: "application/json",
+            },
+          }
+        )
+        .then(() => {
+          this.$toast.success('Occurrence '+status+' with success!', { duration: 3000 });
+          this.closeView();
+        });
+    }
   },
 };
 </script>

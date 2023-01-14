@@ -16,19 +16,24 @@
                   <v-list-item-icon>
                     <v-icon>mdi-file-find</v-icon>
                   </v-list-item-icon>
-                  <v-badge
-                    color="green"
-                    :content="filteredTickets.length"
-                  >
-                  <v-list-item-title>Review tickets</v-list-item-title>
-                  </v-badge>
+                  <div v-if="filteredOccurrences.length > 0">
+                    <v-badge
+                      color="green"
+                      :content="filteredOccurrences.length"
+                    >
+                    <v-list-item-title>Review tickets</v-list-item-title>
+                    </v-badge>
+                  </div>
+                  <div v-if="filteredOccurrences.length == 0">
+                    <v-list-item-title>Review tickets</v-list-item-title>
+                  </div>
                 </v-list-item>
                 <logout></logout>
               </v-list>
             </v-navigation-drawer>
           </v-card>
           <div class="component-container">
-            <ticket-list v-if="showContainer.showReviewTickets" />
+            <ticket-list :occurrences="occurrences" :updateNotification="fetchOccurrencesForExpert()" v-if="showContainer.showReviewTickets" />
           </div>
         </div>
       </div>
@@ -40,29 +45,7 @@ export default {
   data() {
     return {
       showContainer: { showReviewTickets: false },
-      tickets: [
-        {
-          id: 1,
-          policyNumber: 12345,
-          productDescription: "Home",
-          covers: ["Fire", "Theft"],
-          ticketStatus: "Open",
-        },
-        {
-          id: 2,
-          policyNumber: 67890,
-          productDescription: "Auto",
-          covers: ["Collision", "Liability"],
-          ticketStatus: "Open",
-        },
-        {
-          id: 3,
-          policyNumber: 13579,
-          productDescription: "Life",
-          covers: ["Accidental Death"],
-          ticketStatus: "Closed",
-        },
-      ],
+      occurrences: [],
     };
   },
   components: {
@@ -71,8 +54,8 @@ export default {
     "ticket-list": () => import("@/pages/auth/expert/occurrences/list.vue")
   },
   computed: {
-    filteredTickets() {
-      return this.tickets.filter((ticket) => ticket.ticketStatus === "Open");
+    filteredOccurrences() {
+      return this.occurrences.filter((occurrence) => occurrence.occurrenceState === "opened");
     }
   },
   methods: {
@@ -82,8 +65,22 @@ export default {
     },
     resetDisplayVariable: function () {
       this.showContainer.showReviewTickets = false;
+    },
+    async fetchOccurrencesForExpert() {
+      this.$axios
+        .$get("/api/expert/" + this.$auth.user.nif +"/occurrences", {
+          headers: {
+            Accept: "application/json",
+          },
+        })
+        .then((response) => {
+          this.occurrences = response;
+        });
     }
-  }
+  },
+  created() {
+    this.fetchOccurrencesForExpert();
+  },
 };
 </script>
 <style scoped>
