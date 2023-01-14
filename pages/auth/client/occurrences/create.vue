@@ -53,45 +53,47 @@ export default {
   data() {
     return {
       form: {
-        policyNumber: '',
-        description: '',
-        expertNif: ''
+        policyNumber: "",
+        description: "",
+        expertNif: "",
       },
       valid: false,
       files: [],
       occurrencesList: [],
       expertList: [],
-    }
+    };
+  },
+  computed: {
+      hasFile() {
+          return this.file != null
+      }
   },
   methods: {
     submit() {
       if (this.$refs.form.validate()) {
-        this.$axios
-        .$post(
-          "/api/occurrence",
-          this.form,
-          {
-            headers: {
-              Accept: "application/json",
-            },
-          }
-        )
-        .then(() => {
-          this.$toast.success('Occurrence created with success!', { duration: 3000 });
-        });
+        this.storeOccurrence();
       }
     },
     previewFiles(files) {
-      this.files = files
+      this.files = files;
     },
     removeFile(file) {
-      this.files.splice(this.files.indexOf(file), 1)
+      this.files.splice(this.files.indexOf(file), 1);
     },
     openFile(file) {
       window.open(URL.createObjectURL(file));
     },
+    formData(file) {
+      let formData = new FormData()
+      formData.append('username', this.$auth.user.nif)
+      if (file) {
+        formData.append('file', file)
+      }
+      return formData
+    },
     async fetchClient() {
-      this.$axios.$get("/api/clients/"+this.$auth.user.nif+"/policies", {
+      this.$axios
+        .$get("/api/clients/" + this.$auth.user.nif + "/policies", {
           headers: {
             Accept: "application/json",
           },
@@ -101,7 +103,8 @@ export default {
         });
     },
     async fetchExpert() {
-      this.$axios.$get("/api/expert", {
+      this.$axios
+        .$get("/api/expert", {
           headers: {
             Accept: "application/json",
           },
@@ -109,12 +112,34 @@ export default {
         .then((response) => {
           this.expertList = response;
         });
+    },
+    async storeFile(id, file) {
+      console.log(file);
+      this.$axios
+        .$post("/api/documents/" + id, file, {
+          headers: {
+            "Content-Type": "multipart/form-data"
+          },
+        });
+    },
+    async storeOccurrence() {
+      this.$axios
+        .$post("/api/occurrence", this.form, {
+          headers: {
+            Accept: "application/json",
+          },
+        })
+        .then((response) => {
+          this.files.forEach((file) => {
+            this.storeFile(response.id, this.formData(file));
+          });
+          this.$toast.success("Occurrence created with success!", { duration: 3000 });
+        });
     }
   },
   created() {
     this.fetchClient();
     this.fetchExpert();
-  }
-
-}
+  },
+};
 </script>
