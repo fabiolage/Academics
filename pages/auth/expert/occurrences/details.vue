@@ -46,12 +46,12 @@
             readonly
           ></v-textarea>
         </v-col>
-        <v-col cols="12" v-if="ticket.attachments && ticket.attachments.length > 0">
+        <v-col cols="12" v-if="ticket.documents && ticket.documents.length > 0">
           <v-subheader>Attachments</v-subheader>
           <v-list>
-            <v-list-item v-for="attachment in ticket.attachments" :key="attachment.id">
-              <v-list-item-title>{{ attachment.fileName }}</v-list-item-title>
-              <v-btn color="primary" target="_blank" :href="attachment.url">View</v-btn>
+            <v-list-item v-for="attachment in ticket.documents">
+              <v-list-item-title>{{ attachment }}</v-list-item-title>
+              <v-btn color="primary" @click="openFile(attachment)">View</v-btn>
             </v-list-item>
           </v-list>
         </v-col>
@@ -108,6 +108,19 @@ export default {
     this.fetchTicket();
   },
   methods: {
+    async openFile(file) {
+      this.$axios.$get("/api/documents/download/"+file, {
+          responseType: 'blob'
+        })
+        .then((response) => {
+          const url = window.URL.createObjectURL(response);
+          const link = document.createElement('a');
+          link.href = url;
+          link.target = '_blank';
+          document.body.appendChild(link);
+          link.click();
+        });
+    },
     async fetchTicket() {
       try {
         this.$axios.$get("/api/occurrence/"+this.id, {
@@ -157,7 +170,7 @@ export default {
         )
         .then(() => {
           this.$toast.success('Occurrence '+status+' with success!', { duration: 3000 });
-          this.closeView();
+          this.closeView
         });
     }
   },

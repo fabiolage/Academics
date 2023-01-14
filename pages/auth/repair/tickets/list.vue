@@ -2,13 +2,13 @@
   <v-container class="container">
     <ticket-details
       v-if="viewingDetails"
-      :ticketId="selectedTicket"
+      :id="selectedTicket"
       @close="viewingDetails = false"
       class="detail"
     />
     <div class="row">
       <div class="col-8">
-        <h3>List of Tickets</h3>
+        <h3>List of Occurrences</h3>
       </div>
       <div class="col-4">
         <v-btn class="float-right" @click="toggleFilter">{{ filterOpen ? "Show All" : "Show Open" }}</v-btn>
@@ -17,7 +17,7 @@
 
     <v-data-table
       :headers="headers"
-      :items="filteredTickets"
+      :items="filteredOccurrences"
       :loading="loading"
       class="elevation-1"
     >
@@ -35,11 +35,11 @@
           {{ cover }}
         </v-chip>
       </template>
-      <template v-slot:item.ticketStatus="{ item }">
-        {{ item.ticketStatus }}
+      <template v-slot:item.occurrenceState="{ item }">
+        {{ item.occurrenceState }}
       </template>
       <template v-slot:item.actions="{ item }">
-        <v-btn v-if="item.ticketStatus === 'Approved'" @click="viewTicket(item)"
+        <v-btn v-if="item.occurrenceState === 'in_repair'" @click="viewTicket(item)"
           >Repair</v-btn
         >
       </template>
@@ -59,43 +59,20 @@ export default {
       selectedTicket: {},
       loading: false,
       filterOpen: true,
-      tickets: [
-        {
-          id: 1,
-          policyNumber: 12345,
-          productDescription: "Home",
-          covers: ["Fire", "Theft"],
-          ticketStatus: "Open",
-        },
-        {
-          id: 2,
-          policyNumber: 67890,
-          productDescription: "Auto",
-          covers: ["Collision", "Liability"],
-          ticketStatus: "Open",
-        },
-        {
-          id: 3,
-          policyNumber: 13579,
-          productDescription: "Life",
-          covers: ["Accidental Death"],
-          ticketStatus: "Approved",
-        },
-      ],
+      occurrences: [],
       headers: [
         { text: "Policy Number", value: "policyNumber" },
-        { text: "Product Description", value: "productDescription" },
-        { text: "Covers", value: "covers" },
-        { text: "Status", value: "ticketStatus" },
+        { text: "Description", value: "description" },
+        { text: "Status", value: "occurrenceState" },
         { text: "Actions", value: "actions" },
       ],
     };
   },
   computed: {
-    filteredTickets() {
+    filteredOccurrences() {
       return this.filterOpen
-        ? this.tickets.filter((ticket) => ticket.ticketStatus === "Approved")
-        : this.tickets;
+        ? this.occurrences.filter((occurence) => occurence.occurrenceState === "in_repair")
+        : this.occurrences;
     },
   },
   methods: {
@@ -106,7 +83,21 @@ export default {
       this.selectedTicket = item.id;
       this.viewingDetails = true;
     },
+    async fetchOccurrencesForRepairman() {
+      this.$axios
+        .$get("/api/repairCompany/repair/" + this.$auth.user.nif, {
+          headers: {
+            Accept: "application/json",
+          },
+        })
+        .then((response) => {
+          this.occurrences = response;
+        });
+    }
   },
+  mounted() {
+    this.fetchOccurrencesForRepairman();
+  }
 };
 </script>
 <style scoped>

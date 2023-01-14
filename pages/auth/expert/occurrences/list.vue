@@ -100,7 +100,7 @@ export default {
       this.fetchOccurrencesForExpert();
     }
   },
-  created() {
+  mounted() {
     this.fetchOccurrencesForExpert();
   }
 };

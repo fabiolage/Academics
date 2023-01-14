@@ -7,11 +7,11 @@
     <occurence-details
       v-if="viewingDetails"
       :id="selectedOccurrenceId"
-      @close="viewingDetails = false"
+      @close="closeDetails()"
     />
     <occurence-service-repair
       v-if="viewingSetServiceDetails"
-      :occurence="selectedOccurrenceId"
+      :id="selectedOccurrenceId"
       @close="viewingSetServiceDetails = false"
     />
     <v-select v-model="filter" :items="statusOptions" label="Filter by status"></v-select>
@@ -41,7 +41,7 @@
         <v-btn
           v-if="item.occurrenceState == 'accepted'"
           color="normal"
-          @click="viewServiceRepair(item)"
+          @click="viewServiceRepair(item.id)"
           >Set service repair</v-btn
         >
       </template>
@@ -124,13 +124,17 @@ export default {
           this.occurrences = response;
         });
     },
+    closeDetails() {
+      this.viewingDetails = false;
+      this.fetchListOfOccurences();
+    },
     viewDetails(item) {
       this.selectedOccurrenceId = item.id;
       this.viewingDetails = true;
       this.viewingSetServiceDetails = false;
     },
     viewServiceRepair(item) {
-      this.selectedOccurrenceId = item.id;
+      this.selectedOccurrenceId = item;
       this.viewingDetails = false;
       this.viewingSetServiceDetails = true;
     },

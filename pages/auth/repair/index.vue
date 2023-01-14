@@ -16,19 +16,14 @@
                   <v-list-item-icon>
                     <v-icon>mdi-file-find</v-icon>
                   </v-list-item-icon>
-                  <v-badge
-                    color="green"
-                    :content="filteredTickets.length"
-                  >
                   <v-list-item-title>Repairs</v-list-item-title>
-                  </v-badge>
                 </v-list-item>
                 <logout></logout>
               </v-list>
             </v-navigation-drawer>
           </v-card>
           <div class="component-container">
-
+            <list></list>
           </div>
         </div>
       </div>
@@ -40,34 +35,13 @@ export default {
   data() {
     return {
       showContainer: { showReviewTickets: false },
-      tickets: [
-        {
-          id: 1,
-          policyNumber: 12345,
-          productDescription: "Home",
-          covers: ["Fire", "Theft"],
-          ticketStatus: "Open",
-        },
-        {
-          id: 2,
-          policyNumber: 67890,
-          productDescription: "Auto",
-          covers: ["Collision", "Liability"],
-          ticketStatus: "Approved",
-        },
-        {
-          id: 3,
-          policyNumber: 13579,
-          productDescription: "Life",
-          covers: ["Accidental Death"],
-          ticketStatus: "Closed",
-        },
-      ],
+      occurrences: []
     };
   },
   components: {
     "user": () => import("@/pages/menu/user.vue"),
-    "logout": () => import("@/pages/menu/logout.vue")
+    "logout": () => import("@/pages/menu/logout.vue"),
+    "list": () => import("@/pages/auth/repair/tickets/list.vue")
   },
   computed: {
     filteredTickets() {
@@ -81,6 +55,17 @@ export default {
     },
     resetDisplayVariable: function () {
       this.showContainer.showReviewTickets = false;
+    },
+    async fetchOccurrencesForRepair() {
+      this.$axios
+        .$get("/api/repairCompany/" + this.$auth.user.nif +"/occurrences", {
+          headers: {
+            Accept: "application/json",
+          },
+        })
+        .then((response) => {
+          this.occurrences = response;
+        });
     }
   }
 };

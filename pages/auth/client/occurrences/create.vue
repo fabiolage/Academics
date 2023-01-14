@@ -134,7 +134,15 @@ export default {
             this.storeFile(response.id, this.formData(file));
           });
           this.$toast.success("Occurrence created with success!", { duration: 3000 });
+          this.reset();
         });
+    },
+    reset() {
+      this.form.policyNumber = "";
+      this.form.description = "";
+      this.form.expertNif = "";
+      this.valid = false;
+      this.files = [];
     }
   },
   created() {

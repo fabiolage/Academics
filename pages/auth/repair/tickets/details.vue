@@ -15,28 +15,21 @@
         <v-col cols="12" sm="6">
           <v-text-field
             label="Policy Number"
-            v-model="ticket.policyNumber"
+            v-model="ticket.policy_number"
             readonly
           ></v-text-field>
         </v-col>
         <v-col cols="12" sm="6">
           <v-text-field
-            label="Ticket Status"
-            v-model="ticket.ticketStatus"
+            label="Occurrence Status"
+            v-model="ticket.occurrenceState"
             readonly
           ></v-text-field>
         </v-col>
         <v-col cols="12" sm="6">
           <v-text-field
             label="Product Description"
-            v-model="ticket.productDescription"
-            readonly
-          ></v-text-field>
-        </v-col>
-        <v-col cols="12" sm="6">
-          <v-text-field
-            label="Date and Time of Incident"
-            v-model="ticket.incidentDateTime"
+            v-model="ticket.insured_object"
             readonly
           ></v-text-field>
         </v-col>
@@ -53,12 +46,12 @@
             readonly
           ></v-textarea>
         </v-col>
-        <v-col cols="12" v-if="ticket.attachments && ticket.attachments.length > 0">
+        <v-col cols="12" v-if="ticket.documents && ticket.documents.length > 0">
           <v-subheader>Attachments</v-subheader>
           <v-list>
-            <v-list-item v-for="attachment in ticket.attachments" :key="attachment.id">
-              <v-list-item-title>{{ attachment.fileName }}</v-list-item-title>
-              <v-btn color="primary" target="_blank" :href="attachment.url">View</v-btn>
+            <v-list-item v-for="attachment in ticket.documents">
+              <v-list-item-title>{{ attachment }}</v-list-item-title>
+              <v-btn color="primary" @click="openFile(attachment)">View</v-btn>
             </v-list-item>
           </v-list>
         </v-col>
@@ -70,32 +63,23 @@
     </div>
     <v-card-text>
       <div class="w-100">
-        <v-file-input
-          v-model="files"
-          label="Select files"
-          multiple
-        ></v-file-input>
+        <v-file-input v-model="files" label="Select files" multiple></v-file-input>
         <v-list>
           <v-list-item v-for="file in files" :key="file.id">
             <v-list-item-content>
               <v-list-item-title>{{ file.name }}</v-list-item-title>
             </v-list-item-content>
             <v-list-item-action class="buttons-row">
-              <v-btn @click="openFile(file)" color="primary">View</v-btn>
-              <v-btn class="ml-3" @click="removeFile(file.id)" color="error">Delete</v-btn>
+              <v-btn @click="openNewFile(file)" color="primary">View</v-btn>
+              <v-btn class="ml-3" @click="removeFile(file.id)" color="error"
+                >Delete</v-btn
+              >
             </v-list-item-action>
           </v-list-item>
         </v-list>
       </div>
       <div class="w-100">
-        <v-btn
-          @click="
-            showModal = true;
-            completeRepairStatus = true;
-          "
-          color="success"
-          >Complete repair</v-btn
-        >
+        <v-btn @click="validate()" color="success">Complete repair</v-btn>
         <v-bottom-sheet v-model="showModal">
           <v-card>
             <v-card-title class="headline">Are you sure?</v-card-title>
@@ -111,51 +95,17 @@
 </template>
 <script>
 export default {
-  props: ["ticketId"],
+  props: ["id"],
   data() {
     return {
-      ticket: {
-        id: 456,
-        policyNumber: 12345,
-        productDescription: "Home",
-        ticketStatus: "Open",
-        incidentDateTime: "2023-01-03 18:00",
-        description: "Description goes here",
-        attachments: [
-          {
-            id: 1,
-            fileName: "File 1",
-            url:
-              "https://ead.ipleiria.pt/2022-23/pluginfile.php/109374/mod_resource/content/12/DAE-2022-23-1S-ENUNCIADO_PROJETO.pdf",
-          },
-          {
-            id: 2,
-            fileName: "File 2",
-            url:
-              "https://ead.ipleiria.pt/2022-23/pluginfile.php/109374/mod_resource/content/12/DAE-2022-23-1S-ENUNCIADO_PROJETO.pdf",
-          },
-        ],
-        covers: ["Collision", "Liability"],
-      },
-      message: "",
+      ticket: {},
       showModal: false,
-      selectedStore: null,
-      stores: [
-        { id: 1, name: "Worten" },
-        { id: 2, name: "PCDiga" },
-        { id: 3, name: "Fnac" },
-      ],
-      completeRepairStatus: false,
       files: [],
+      completeRepairStatus: true
     };
   },
   mounted() {
     this.fetchTicket();
-  },
-  computed: {
-    selectedFiles() {
-      return this.files;
-    },
   },
   methods: {
     onFileChange(event) {
@@ -166,9 +116,15 @@ export default {
     },
     async fetchTicket() {
       try {
-        // something like this
-        //const response = await axios.get(`/api/tickets/${this.ticketId}`)
-        //this.ticket = response.data
+        this.$axios
+          .$get("/api/occurrence/" + this.id, {
+            headers: {
+              Accept: "application/json",
+            },
+          })
+          .then((response) => {
+            this.ticket = response;
+          });
       } catch (error) {
         console.error(error);
       }
@@ -177,8 +133,33 @@ export default {
       this.$emit("close");
     },
     async completeRepair() {
-      // TODO
-      console.log("Conclude ticket");
+      this.saveDocs();
+      this.$axios
+        .$put(
+          "/api/occurrence/" + this.id,
+          {
+            occurrenceState: "repaired",
+          },
+          {
+            headers: {
+              Accept: "application/json",
+            },
+          }
+        )
+        .then(() => {
+          this.$toast.success("Repair was completed!", { duration: 3000 });
+          this.closeView();
+        });
+    },
+    saveDocs() {
+      this.files.forEach((file) => {
+        this.$axios
+        .$post("/api/documents/" + this.id, this.formData(file), {
+          headers: {
+            "Content-Type": "multipart/form-data"
+          }
+        });
+      });
     },
     confirmAction() {
       this.showModal = false;
@@ -187,9 +168,42 @@ export default {
       }
       this.completeRepairStatus = false;
     },
-    openFile(file) {
+    openNewFile(file) {
       window.open(URL.createObjectURL(file));
-    }
+    },
+    async openFile(file) {
+      this.$axios
+        .$get("/api/documents/download/" + file, {
+          responseType: "blob",
+        })
+        .then((response) => {
+          const url = window.URL.createObjectURL(response);
+          const link = document.createElement("a");
+          link.href = url;
+          link.target = "_blank";
+          document.body.appendChild(link);
+          link.click();
+        });
+    },
+    validate() {
+      if (this.files.length === 0) {
+        this.$toasted.error("Files are missing", {
+          duration: 3000,
+        });
+        return;
+      }
+      this.showModal = true;
+      this.completeRepairStatus = true;
+    },
+    formData(file) {
+      let formData = new FormData()
+      formData.append('username', this.$auth.user.nif)
+      if (file) {
+        formData.append('file', file)
+      }
+      return formData
+    },
+
   },
 };
 </script>
