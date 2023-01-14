@@ -1,36 +1,33 @@
 <template>
-  <v-form ref="form">
-    <v-card-title>Create ticket</v-card-title>
-    <v-text-field
-      v-model="policyNumber"
-      label="Policy Number"
+  <v-form ref="form" class="mr-3">
+    <v-card-title>Create occurrence</v-card-title>
+    <v-select
+      v-model="form.policyNumber"
+      :items="occurrencesList"
+      :return-object="false"
+      item-text="policy_number"
+      item-value="policy_number"
+      label="Select a policy"
+      persistent-hint
+      hint="Please select a policy"
       required
-    />
-    <div class="row">
-      <v-text-field
-        class="col-6"
-        type="date"
-        v-model="accidentDate"
-        label="Date of Accident"
-        :error-messages="accidentDateErrors"
-        @input="validateAccidentDate"
-        required
-      />
-      <v-text-field
-        class="col-6"
-        type="time"
-        v-model="accidentTime"
-        label="Time of Accident"
-        :error-messages="accidentTimeErrors"
-        @input="validateAccidentTime"
-        required
-      />
-    </div>
+    ></v-select>
     <v-textarea
-      v-model="accidentDescription"
-      label="Description of Accident"
+      v-model="form.description"
+      label="Description of the occurrence"
       required
     />
+    <v-select
+      v-model="form.expertNif"
+      :items="expertList"
+      :return-object="false"
+      item-text="name"
+      item-value="nif"
+      label="Select an expert"
+      persistent-hint
+      hint="Please select a expert"
+      required
+    ></v-select>
     <v-file-input
       v-model="files"
       label="Upload Files"
@@ -52,41 +49,36 @@
 </template>
 
 <script>
-import moment from "moment";
 export default {
   data() {
     return {
-      policyNumber: '',
-      accidentDate: '',
-      accidentTime: '',
-      accidentDescription: '',
-      accidentDateErrors: [],
-      accidentTimeErrors: [],
+      form: {
+        policyNumber: '',
+        description: '',
+        expertNif: ''
+      },
       valid: false,
-      files: []
+      files: [],
+      occurrencesList: [],
+      expertList: [],
     }
   },
   methods: {
     submit() {
       if (this.$refs.form.validate()) {
-        // submit form
-      }
-    },
-    validateAccidentDate() {
-      const currentDate = moment().format('YYYY-MM-DD')
-      if (this.accidentDate > currentDate) {
-        this.accidentDateErrors = ['Accident date cannot be in the the future'];
-      } else {
-        this.accidentDateErrors = []
-      }
-    },
-    validateAccidentTime() {
-      const currentDate = moment().format('YYYY-MM-DD')
-      const currentTime = moment().format('HH:mm')
-      if ((moment(this.accidentDate).isSame(currentDate)) && (this.accidentTime > currentTime)) {
-        this.accidentTimeErrors = ['Accident time cannot be in the the future']
-      } else {
-        this.accidentTimeErrors = []
+        this.$axios
+        .$post(
+          "/api/occurrence",
+          this.form,
+          {
+            headers: {
+              Accept: "application/json",
+            },
+          }
+        )
+        .then(() => {
+          this.$toast.success('Occurrence created with success!', { duration: 3000 });
+        });
       }
     },
     previewFiles(files) {
@@ -97,7 +89,32 @@ export default {
     },
     openFile(file) {
       window.open(URL.createObjectURL(file));
+    },
+    async fetchClient() {
+      this.$axios.$get("/api/clients/"+this.$auth.user.nif+"/policies", {
+          headers: {
+            Accept: "application/json",
+          },
+        })
+        .then((response) => {
+          this.occurrencesList = response;
+        });
+    },
+    async fetchExpert() {
+      this.$axios.$get("/api/expert", {
+          headers: {
+            Accept: "application/json",
+          },
+        })
+        .then((response) => {
+          this.expertList = response;
+        });
     }
+  },
+  created() {
+    this.fetchClient();
+    this.fetchExpert();
   }
+
 }
 </script>
