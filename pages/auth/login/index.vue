@@ -62,19 +62,23 @@ export default {
   },
   methods: {
     onSubmit() {
-      let promise = this.$auth.loginWith('local', {
-        data: {
-          nif: this.form.nif,
-          password: this.form.password
-        }
-      })
-      promise.then(() => {
-        this.$router.push(`/auth/${this.$auth.user.role.toLowerCase()}`);
-      })
-      promise.catch(() => {
-        this.form.error = 'Invalid nif or password';
-      })
-    }
+    let promise = this.$auth.loginWith('local', {
+      data: {
+        nif: this.form.nif,
+        password: this.form.password
+      }
+    })
+    promise.then(() => {
+      if(this.$auth.user.role.toLowerCase() === 'admin'){
+        this.$router.replace(`/occurrence/${this.$auth.user.id}`);
+      }else{
+        this.$router.replace(`/auth/${this.$auth.user.role.toLowerCase()}`);
+      }
+    })
+    promise.catch(() => {
+      this.form.error = 'Invalid nif or password';
+    })
+  }
   },
 };
 </script>

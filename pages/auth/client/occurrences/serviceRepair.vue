@@ -90,8 +90,21 @@ export default {
         )
         .then(() => {
           this.setOccurenceInRepair();
-          // TODO
-          // SEND EMAIL
+          this.sendEmail(serviceRepair);
+        });
+    },
+    async sendEmail(serviceRepair) {
+      this.$axios
+        .$post(
+          "/api/clients/"+serviceRepair+"/"+this.id,
+          {
+            headers: {
+              Accept: "application/json",
+            },
+          }
+        )
+        .then(() => {
+          this.setOccurenceInRepair();
         });
     },
     async setNewRepair() {
@@ -110,6 +123,7 @@ export default {
         )
         .then(() => {
           this.setOccurenceInRepair();
+          this.sendEmail(serviceRepair);
         });
     },
     async setOccurenceInRepair() {
@@ -117,7 +131,7 @@ export default {
         .$put(
           "/api/occurrence/" + this.id,
           {
-            occurrenceState: "repaired",
+            occurrenceState: "in_repair",
           },
           {
             headers: {

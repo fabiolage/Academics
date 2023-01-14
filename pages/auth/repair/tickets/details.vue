@@ -49,7 +49,7 @@
         <v-col cols="12" v-if="ticket.documents && ticket.documents.length > 0">
           <v-subheader>Attachments</v-subheader>
           <v-list>
-            <v-list-item v-for="attachment in ticket.documents">
+            <v-list-item v-for="attachment in ticket.documents" :key="attachment">
               <v-list-item-title>{{ attachment }}</v-list-item-title>
               <v-btn color="primary" @click="openFile(attachment)">View</v-btn>
             </v-list-item>

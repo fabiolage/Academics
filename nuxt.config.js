@@ -84,7 +84,15 @@ export default {
   router: {
     middleware: [
       'auth'
-    ]
+    ],
+    extendRoutes (routes, resolve) {
+      routes.push({
+        name: 'occurrence-id',
+        path: '/occurrence/:id',
+        component: resolve(__dirname, 'pages/occurrence/_id.vue'),
+        meta: { auth: false }
+      })
+    }
   },
 
     proxy: {

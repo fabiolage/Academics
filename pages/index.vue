@@ -6,7 +6,7 @@
 <script>
 export default {
   beforeMount() {
-    this.$router.push('/auth/login/')
+    //this.$router.push('/auth/login/')
   }
 }
 </script>
